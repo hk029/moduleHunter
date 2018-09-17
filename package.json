@@ -1,6 +1,6 @@
 {
   "name": "modulehunter",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "This is a tool that helps you quickly see the dependencies between modules.",
   "main": "index.js",
   "scripts": {
