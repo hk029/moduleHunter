@@ -1,12 +1,10 @@
 const ora = require("ora");
 const chalk = require("chalk");
 const npmAPI = require("./npm_api");
-const semver = require("semver");
-const _ = require("lodash");
 let print = true;
 
 const printDep = (dep, level) => {
-  let text = ``;
+  let text = "";
   for (let key in dep) {
     let version = dep[key].version || dep[key];
     text += `\n  ${"│    ".repeat(level)}├──${chalk.whiteBright(
@@ -19,6 +17,7 @@ const printDep = (dep, level) => {
 };
 
 const printPack = (pack, version) => {
+  let text = "";
   for (let key in pack) {
     text += `──${chalk.yellowBright("" + key)} ${chalk.cyanBright.bold(
       "" + pack[key].version
@@ -51,23 +50,23 @@ class MouduleHunter {
     this.getPack = this.getPack.bind(this);
   }
 
-  // 判断某个版本是不是在包中，如果在返回版本号，否则返回false
-  // 现在这个函数可以废除了，因为有新的接口直接查版本号
-  isVersionExist(version, pack) {
-    let curVersion = false;
-    if (version === "latest") {
-      curVersion = pack["dist-tags"].latest;
-    } else {
-      for (let k in pack["versions"]) {
-        // 看当前版本是不是满足条件
-        if (semver.satisfies(k, version)) {
-          curVersion = k;
-          break;
-        }
-      }
-    }
-    return curVersion;
-  }
+  // // 判断某个版本是不是在包中，如果在返回版本号，否则返回false
+  // // 现在这个函数可以废除了，因为有新的接口直接查版本号
+  // isVersionExist(version, pack) {
+  //   let curVersion = false;
+  //   if (version === "latest") {
+  //     curVersion = pack["dist-tags"].latest;
+  //   } else {
+  //     for (let k in pack["versions"]) {
+  //       // 看当前版本是不是满足条件
+  //       if (semver.satisfies(k, version)) {
+  //         curVersion = k;
+  //         break;
+  //       }
+  //     }
+  //   }
+  //   return curVersion;
+  // }
 
   // 这是一个递归函数
   async getDep(dependencies, already = {}) {

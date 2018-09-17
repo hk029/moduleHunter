@@ -1,6 +1,6 @@
 {
   "name": "modulehunter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "This is a tool that helps you quickly see the dependencies between modules.",
   "main": "index.js",
   "scripts": {
@@ -33,9 +33,7 @@
   "dependencies": {
     "chalk": "^2.4.1",
     "commander": "^2.18.0",
-    "loadash": "^1.0.0",
     "ora": "^3.0.0",
-    "semver": "^5.5.1",
     "superagent": "^3.8.3"
   },
   "devDependencies": {
