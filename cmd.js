@@ -6,8 +6,7 @@ const hunter = require("./index");
 const { outputPack } = hunter;
 
 const getModule = async (type, data) => {
-  let c = await hunter.getAllDep(type, data);
-  outputPack(c);
+  outputPack(await hunter.getAllDep(type, data, true));
 };
 
 program
@@ -21,7 +20,7 @@ if (program.args.length === 0) {
   program.help();
 } else {
   if (program.dir) {
-    getModule("file", program.args[0]);
+    getModule("dir", program.args[0]);
   }
   if (program.module) {
     getModule("mod", program.args[0]);

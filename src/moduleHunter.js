@@ -2,7 +2,7 @@ const ora = require("ora");
 const path = require("path");
 const fs = require("fs");
 const { mapObj, printPack, printMod } = require("./util");
-const npmAPI = require("./npm_api");
+const npmAPI = require("./npmApi");
 const Cache = require("./cache");
 
 let cache = new Cache();
@@ -36,7 +36,6 @@ class MouduleHunter {
         let pack = res.data;
         const { version } = pack;
         let cacheDeps = cache.get(key + version);
-        let tmp = {};
         // 看cache里有没有当前版本的包，如果有就直接读取
         if (cacheDeps) {
           genDep[key] = cacheDeps;
@@ -68,10 +67,11 @@ class MouduleHunter {
     return genDep;
   }
 
-  async getAllDep(type, data) {
-    let pack;
+  // 获取依赖
+  async getAllDep(type, data, plain = false) {
+    let pack, dep;
     switch (type) {
-      case "file":
+      case "dir":
         let filePath = path.resolve(process.cwd(), data) + "/package.json";
         if (fs.existsSync(filePath)) {
           pack = JSON.parse(fs.readFileSync(filePath).toString());
@@ -85,7 +85,12 @@ class MouduleHunter {
       default:
         break;
     }
-    pack.dependencies = await this.getDep(pack.dependencies);
+    dep = await this.getDep(pack.dependencies);
+    if (plain) {
+      dep = this.plaintDep(dep);
+    }
+    pack.dependencies = dep;
+    cache.persistence();
     return pack;
   }
 
@@ -124,7 +129,26 @@ class MouduleHunter {
 
   outputPack(pack) {
     console.log(printPack(pack));
-    cache.persistence();
+  }
+
+  // 扁平化依赖
+  plaintDep(dep) {
+    const newDep = {};
+    // 深度遍历，并把每一层的信息扁平放入依赖列表
+    const depthTraversal = (dep, path) => {
+      Object.keys(dep).map(key => {
+        const newPath = path.concat(`${key} ${dep[key].version}`); // 不要直接push到path中去，会修改path
+        if (!newDep[key]) {
+          newDep[key] = {
+            version: dep[key].version,
+            path: newPath
+          };
+        }
+        depthTraversal(dep[key].dependencies, newPath);
+      });
+    };
+    depthTraversal(dep, []);
+    return newDep;
   }
 
   // // 判断某个版本是不是在包中，如果在返回版本号，否则返回false

@@ -56,7 +56,7 @@ class Util {
     let text = "";
     for (let key in dep) {
       let version = dep[key].version || dep[key];
-      text += `\n  ${"│    ".repeat(level)}├──${chalk.whiteBright(
+      text += `\n${"│    ".repeat(level)}├──${chalk.whiteBright(
         "" + key
       )} ${chalk.magentaBright("" + version)}`;
       text += this.printDepTree(dep[key].dependencies, level + 1);
