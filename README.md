@@ -12,7 +12,7 @@ npm install -g moduleHunter
 ## CLI使用方法
 
 ```javascript
-mh -d .    //可以查看本地工程目录的依赖情况 
+mh -d ./    //可以查看本地工程目录的依赖情况 
 mh -m chalk //可以查看线上某个模块的依赖情况
 ```
 会出现如下输出

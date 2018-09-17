@@ -2,29 +2,11 @@
 
 const program = require("commander");
 const hunter = require("./index");
-const path = require("path");
-const fs = require("fs");
 
-const { log, error } = console;
-const { getDep, outputPack, getPack, packOverall } = hunter;
+const { outputPack } = hunter;
 
 const getModule = async (type, data) => {
-  let pack;
-  switch (type) {
-    case "file":
-      console.log(path.resolve(process.cwd(), data));
-      let filePath = path.resolve(process.cwd(), data) + "/package.json";
-      if (fs.existsSync(filePath)) {
-        pack = JSON.parse(fs.readFileSync(filePath).toString());
-      } else {
-        error(`The ${data} directory does not have a package.json file`);
-      }
-      break;
-    case "mod":
-      pack = await getPack(data);
-      break;
-  }
-  let c = await getDep(pack.dependencies);
+  let c = await hunter.getAllDep(type, data);
   outputPack(c);
 };
 
