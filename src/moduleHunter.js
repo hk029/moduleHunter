@@ -56,6 +56,7 @@ class MouduleHunter {
             genDep[key] = {
               version,
               inVersion,
+              url: repository.url,
               dependencies: await this.getDep(curDep, already)
             };
             // 把获取的依赖信息加入缓存
