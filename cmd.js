@@ -6,12 +6,13 @@ const path = require("path");
 const fs = require("fs");
 
 const { log, error } = console;
-const { getDep, outputPack } = hunter.default;
+const { getDep, outputPack, getPack, packOverall } = hunter;
 
 const getModule = async (type, data) => {
   let pack;
   switch (type) {
     case "file":
+      console.log(path.resolve(process.cwd(), data));
       let filePath = path.resolve(process.cwd(), data) + "/package.json";
       if (fs.existsSync(filePath)) {
         pack = JSON.parse(fs.readFileSync(filePath).toString());
@@ -20,6 +21,7 @@ const getModule = async (type, data) => {
       }
       break;
     case "mod":
+      pack = await getPack(data);
       break;
   }
   let c = await getDep(pack.dependencies);
@@ -30,21 +32,9 @@ program
   .version("v" + require("./package.json").version)
   .description("Manipulate asar archive files")
   .option("-d, --dir", "the directory that contain the package.json")
-  .option("-m, --module [module's name]", "the module in NPM");
+  .option("-m, --module", "the module in NPM");
 
-program
-  .command("pack <dir> <output>")
-  .alias("p")
-  .description("create asar archive")
-  .action(function(__dirpath, output) {
-    console.log(output + "文件成功生成");
-  });
-
-console.log(process.argv);
 program.parse(process.argv);
-console.log(__dirname);
-console.log(process.cwd());
-console.log(program.args);
 if (program.args.length === 0) {
   program.help();
 } else {

@@ -1,7 +1,9 @@
-import ora from "ora";
-import chalk from "chalk";
-import npmAPI from "./npm_api";
-import semver from "semver";
+const ora = require("ora");
+const chalk = require("chalk");
+const npmAPI = require("./npm_api");
+const semver = require("semver");
+const _ = require("lodash");
+let print = true;
 
 const printDep = (dep, level) => {
   let text = ``;
@@ -17,7 +19,6 @@ const printDep = (dep, level) => {
 };
 
 const printPack = (pack, version) => {
-  let text = ``;
   for (let key in pack) {
     text += `──${chalk.yellowBright("" + key)} ${chalk.cyanBright.bold(
       "" + pack[key].version
@@ -28,10 +29,46 @@ const printPack = (pack, version) => {
   return text;
 };
 
+const mapObj = (obj, keys) => {
+  if (!keys) return obj;
+  let newObj = {};
+  keys.map(key => {
+    if (typeof key === "object") {
+      let mapKey = key;
+      Object.keys(mapKey).map(tmpKey => {
+        newObj[mapKey[tmpKey]] = obj[tmpKey];
+      });
+    } else {
+      newObj[key] = obj[key];
+    }
+  });
+  return newObj;
+};
+
 class MouduleHunter {
   constructor() {
     this.getDep = this.getDep.bind(this);
+    this.getPack = this.getPack.bind(this);
   }
+
+  // 判断某个版本是不是在包中，如果在返回版本号，否则返回false
+  // 现在这个函数可以废除了，因为有新的接口直接查版本号
+  isVersionExist(version, pack) {
+    let curVersion = false;
+    if (version === "latest") {
+      curVersion = pack["dist-tags"].latest;
+    } else {
+      for (let k in pack["versions"]) {
+        // 看当前版本是不是满足条件
+        if (semver.satisfies(k, version)) {
+          curVersion = k;
+          break;
+        }
+      }
+    }
+    return curVersion;
+  }
+
   // 这是一个递归函数
   async getDep(dependencies, already = {}) {
     // 如果为空，则返回
@@ -42,48 +79,34 @@ class MouduleHunter {
     // 保存所有的依赖到已访问对象中
     for (let key in dependencies) {
       // 获取当前依赖的版本信息
-      let version = dependencies[key];
-      const spinner = ora(`正在寻找依赖：${key} ${version}`).start();
-      let pack, curVersion, curDep;
+      let inVersion = dependencies[key];
+      let curDep;
+      let spinner;
+
+      print && (spinner = ora(`正在寻找依赖：${key} ${inVersion}`).start());
+
       // 获取当前包信息
-      pack = await npmAPI.key(key);
-      if (pack.code !== 200) {
-        spinner.fail(`网络错误：${pack.data}`);
+      const res = await npmAPI.packOfVersion(key, inVersion);
+
+      if (res.code !== 200) {
+        print && spinner.fail(`${key} ${version}  不存在`);
       } else {
-        pack = pack.data;
-      }
-      if (version === "latest") {
-        curVersion = pack["dist-tags"].latest;
-      } else {
-        for (let k in pack["versions"]) {
-          // 看当前版本是不是满足条件
-          if (semver.satisfies(k, version)) {
-            curVersion = k;
-            break;
-          }
-        }
-      }
-      if (!curVersion) {
-        spinner.fail(`${key} ${version}  不存在`);
-      } else {
+        let pack = res.data;
+        const { version } = pack;
         // 说明已经出现循环依赖
-        if (already[key] === curVersion) {
-          spinner.fail(`出现循环依赖：${key} ${curVersion}`);
+        if (already[key] === version) {
+          print && spinner.fail(`出现循环依赖：${key} ${version}`);
           genDep[key] = { version, dependencies: {} };
-          // return genDep;
         } else {
-          curDep = pack["versions"][curVersion].dependencies || {};
+          curDep = pack.dependencies || {};
           let tmp = {};
-          //  获取所有的版本信息
-          let allVersion = Object.keys(pack.time);
-          tmp[key] = { version, dependencies: curDep };
-          spinner.succeed(printPack(tmp, curVersion));
+          tmp[key] = { version: inVersion, dependencies: curDep };
+          print && spinner.succeed(printPack(tmp, version));
           // 保存当前版本到已访问中
-          already[key] = curVersion;
+          already[key] = version;
           // 把当前版本全加入列表，并且递归调用
           genDep[key] = {
-            version: version,
-            allVersion,
+            version,
             dependencies: await this.getDep(curDep, already)
           };
         }
@@ -92,9 +115,43 @@ class MouduleHunter {
     return genDep;
   }
 
+  async packOverall(key, returnVal) {
+    const res = await npmAPI.packInfo(key);
+    let pack, ret;
+    if (res.code === 200) {
+      pack = res.data;
+    }
+    ret = mapObj(pack, [
+      "name",
+      "description",
+      { "dist-tags": "latest", time: "versions" }
+    ]);
+    return mapObj(ret, returnVal);
+  }
+
+  async getPack(key, version, returnVal) {
+    const res = await npmAPI.packOfVersion(key, version);
+    let ret, pack;
+    if (res.code === 200) {
+      pack = res.data;
+    }
+    ret = mapObj(pack, [
+      "name",
+      "version",
+      "keywords",
+      "repository",
+      "description",
+      "homepage",
+      "dependencies",
+      { "dist-tags": "latest", time: "versions" }
+    ]);
+    return mapObj(ret, returnVal);
+    // return this.getDep(pack.dependencies)
+  }
+
   outputPack(pack) {
     console.log(printPack(pack));
   }
 }
 
-export default new MouduleHunter();
+module.exports = new MouduleHunter();

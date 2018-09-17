@@ -1,8 +1,10 @@
 // 本来准备使用axios的，后来发现一个超好用的http模块SuperAgent, 把链式调用玩出花来了，决定尝尝鲜
 // 这里统一采用es6的模块写法，通过webpack兼容浏览器和Node两端
-import http from "superagent";
-import { promisify } from "./util";
+// import http from "superagent";
+// import { promisify } from "./util";
 
+const http = require("superagent");
+const { promisify } = require("./util");
 const BASE = "http://rnpm.hz.netease.com";
 
 class npmAPI {
@@ -11,9 +13,13 @@ class npmAPI {
   }
   createModule() {
     // 一些公用的API
-    this.key = promisify((key, cb) => {
-      // let nKey = key.replace(//)
+    this.packInfo = promisify((key, cb) => {
       this.request(`/${key}`, "get", {}, cb);
+    });
+
+    this.packOfVersion = promisify((key, version, cb) => {
+      let ver = version || "latest";
+      this.request(`/${key}/${ver}`, "get", {}, cb);
     });
   }
 
@@ -53,4 +59,5 @@ class npmAPI {
   }
 }
 
-export default new npmAPI();
+module.exports = new npmAPI();
+// export default new npmAPI();

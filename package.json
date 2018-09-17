@@ -19,7 +19,7 @@
     "dependent"
   ],
   "bin": {
-    "mh1": "./cmd.js"
+    "mh": "./cmd.js"
   },
   "author": {
     "name": "voidsky",
@@ -33,6 +33,7 @@
   "dependencies": {
     "chalk": "^2.4.1",
     "commander": "^2.18.0",
+    "loadash": "^1.0.0",
     "ora": "^3.0.0",
     "semver": "^5.5.1",
     "superagent": "^3.8.3"
