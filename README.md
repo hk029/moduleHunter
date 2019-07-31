@@ -84,8 +84,8 @@ npm install modulehunter
 ### 使用方法
 
 ```javascript
-const mh = require("./index");
-const { getPack, getAllDep, outputPack } = mh;
+const ModuleHunter = require("modulehunter");
+const { getPack, getAllDep, outputPack } = new ModuleHunter();
 const { log } = console;
 /**
  * Promise Then调用方式
@@ -209,7 +209,7 @@ getPack("modulehunter", 'latest', ['name', 'version']).then(val => log(val));
 
 以格式化的形式输出`未扁平化`模块的依赖关系，如：
 
-![20180917153718726060394.png](http://o7bk1ffzo.bkt.clouddn.com/20180917153718726060394.png)
+![20180917153718726060394.png](http://img.hksite.cn/20180917153718726060394.png)
 
 ### 版本信息
 

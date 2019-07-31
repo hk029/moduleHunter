@@ -5,11 +5,12 @@
 
 const http = require("superagent");
 const { promisify } = require("./util");
-const BASE = "http://rnpm.hz.netease.com";
+let BASE = '';
 
 class npmAPI {
   constructor(config) {
     this.createModule();
+    BASE = config.registry ||'https://r.cnpmjs.org'; 
   }
   createModule() {
     // 一些公用的API
@@ -59,5 +60,5 @@ class npmAPI {
   }
 }
 
-module.exports = new npmAPI();
+module.exports = npmAPI;
 // export default new npmAPI();

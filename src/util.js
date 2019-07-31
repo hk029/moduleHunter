@@ -11,7 +11,6 @@ class Util {
       return new Promise(function(resolve, reject) {
         args.push(function(err, result) {
           if (err) {
-            // console.log('reject!!!!!!!!!!!!!!!!!!!');
             reject(err);
           } else resolve(result);
         });
@@ -28,6 +27,7 @@ class Util {
         `\n============ ${name} v${version} 依赖情况 ==============\n`
       );
     }
+    // console.log(dependencies);
     text = Object.keys(dependencies).reduce(
       (pre, key) => pre + this.printMod(key, dependencies[key]),
       text
